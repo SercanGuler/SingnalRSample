@@ -1,0 +1,70 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+
+
+<div class="row">
+    <div class="col-lg-12">
+        <h3><i class="glyphicon glyphicon-comment"></i> Mesajlar</h3>
+        <hr/>
+        <ul id="mesajlar" style="height: 200px; overflow: auto; display: none"></ul>
+    </div>
+</div>
+
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="form-horizontal">
+            <div class="form-group">
+                <div class="col-md-12">
+                    @Html.TextBox("message", null, new { @class = "form-control", @placeholder = "Mesaj",@style= "max-width: 100% !important" })<br />
+                    <span id="name"></span>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+    @section scripts
+{
+        <script src="~/Scripts/jquery.signalR-2.2.0.js"></script>
+        <script type="text/javascript" src="~/signalr/hubs"></script>
+        <script type="text/javascript">
+            $(function () {
+                var chatHub = $.connection.chatHub, _name, _date;
+                chatHub.client.sendMessage = function (name, message) {
+                    _date = (new Date()).getDate() + '/' + ((new Date()).getMonth() + 1) + '/' + (new Date()).getFullYear() + ' ' + (new Date()).getHours() + ':' + (new Date()).getMinutes() + ':' + (new Date()).getSeconds();
+                    $("#mesajlar").slideDown();
+          
+
+
+
+                    var scr = $('#mesajlar')[0].scrollHeight;
+                    $('#mesajlar').animate({ scrollTop: scr }, 500);
+
+                    $("#mesajlar").append("<li><strong>" + name + "</strong> : " + message +" -<small style='coloe:#ddd;'> "+ _date + "</small></li>");
+                }
+                _name = prompt("Adınızı Girin : ", "");
+                $("#name").append("<i class='glyphicon glyphicon-user'></i>  " + _name + " olarak giriş yaptınız.");
+                $("#message").focus();
+                $.connection.hub.start().done(function () {
+                    $('#message').keypress(function (e) {
+                        if (e.which == 13) {
+                            // Call the Send method on the hub.
+                            chatHub.server.send(_name, $('#message').val() );
+                            // Clear text box and reset focus for next comment.
+                            $('#message').val('').focus();
+                 
+                        }
+                    });
+                });
+
+
+            })
+        </script>
+
+
+    }
